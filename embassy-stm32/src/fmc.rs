@@ -137,7 +137,7 @@ macro_rules! fmc_configure_pins_constructor {
             $($d_pin_name: Peri<'d, impl $d_signal<T>>),*,
             $($nbl_pin_name: Peri<'d, impl $nbl_signal<T>>),*,
             $($ctrl_pin_name: Peri<'d, impl $ctrl_signal<T>>),*
-        ) {
+        ) -> Fmc<'d, T> {
             critical_section::with(|_| {
                 config_pins!(
                     $($addr_pin_name),*,
@@ -147,6 +147,8 @@ macro_rules! fmc_configure_pins_constructor {
                     $($ctrl_pin_name),*
                 );
             });
+
+            Self { peri: PhantomData }
         }
     };
 }
