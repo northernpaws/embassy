@@ -432,8 +432,8 @@ impl<'d, T: Instance> Fmc<'d, T> {
             (sdne0: SDNE0Pin),
             (sdne1: SDNE1Pin),
             (sdnras: SDNRASPin),
-            (sdnwe: SDNWEPin)
-            (noe: NOEPin)
+            (sdnwe: SDNWEPin),
+            (noe: NOEPin),
             (nwe: NWEPin)
         ]
     ));
