@@ -8,7 +8,7 @@ use embassy_sync::waitqueue::AtomicWaker;
 
 use super::ringbuffer::{DmaCtrl, Error, ReadableDmaRingBuffer, WritableDmaRingBuffer};
 use super::word::{Word, WordSize};
-use super::{AnyChannel, Channel, Dir, Request, STATE};
+use super::{AnyChannel, Channel, Dir, Increment, Request, STATE};
 use crate::interrupt::typelevel::Interrupt;
 use crate::{interrupt, pac};
 
@@ -341,7 +341,7 @@ impl AnyChannel {
         peri_addr: *const u32,
         mem_addr: *mut u32,
         mem_len: usize,
-        incr_mem: bool,
+        incr_mem: Increment,
         mem_size: WordSize,
         peri_size: WordSize,
         options: TransferOptions,
@@ -411,8 +411,21 @@ impl AnyChannel {
                     w.set_msize(mem_size.into());
                     w.set_psize(peri_size.into());
                     w.set_pl(options.priority.into());
-                    w.set_minc(incr_mem);
-                    w.set_pinc(false);
+                    match incr_mem {
+                        Increment::None = {},
+                        Increment::Peripheral => {
+                            w.set_minc(false);
+                            w.set_pinc(true);
+                        },
+                        Increment::Memory = {
+                            w.set_minc(true);
+                            w.set_pinc(false);
+                        },
+                        Increment::Both = {
+                            w.set_minc(true);
+                            w.set_pinc(true);
+                        }
+                    }
                     w.set_teie(true);
                     w.set_htie(options.half_transfer_ir);
                     w.set_tcie(options.complete_transfer_ir);
@@ -653,7 +666,7 @@ impl<'a> Transfer<'a> {
             src_addr as *mut u32,
             dest_addr as *mut u32,
             src_size,
-            true,
+            Increment::Peripheral,
             MW::size(),
             PW::size(),
             options,
@@ -686,7 +699,7 @@ impl<'a> Transfer<'a> {
             peri_addr as *const u32,
             buf as *mut MW as *mut u32,
             buf.len(),
-            true,
+            Increment::Memory,
             MW::size(),
             PW::size(),
             options,
@@ -719,7 +732,7 @@ impl<'a> Transfer<'a> {
             peri_addr as *const u32,
             buf as *const MW as *mut u32,
             buf.len(),
-            true,
+            Increment::Memory,
             MW::size(),
             PW::size(),
             options,
@@ -742,7 +755,7 @@ impl<'a> Transfer<'a> {
             peri_addr as *const u32,
             repeated as *const W as *mut u32,
             count,
-            false,
+            Increment::None,
             W::size(),
             W::size(),
             options,
@@ -756,7 +769,7 @@ impl<'a> Transfer<'a> {
         peri_addr: *const u32,
         mem_addr: *mut u32,
         mem_len: usize,
-        incr_mem: bool,
+        incr_mem: Increment,
         mem_size: WordSize,
         peri_size: WordSize,
         options: TransferOptions,
