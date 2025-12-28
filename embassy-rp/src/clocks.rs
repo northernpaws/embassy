@@ -267,7 +267,7 @@ impl CoreVoltage {
     }
 }
 
-/// CLock configuration.
+/// Clock configuration.
 #[non_exhaustive]
 pub struct ClockConfig {
     /// Ring oscillator configuration.
@@ -1647,6 +1647,9 @@ pub enum GpoutSrc {
     Rosc = ClkGpoutCtrlAuxsrc::ROSC_CLKSRC as _,
     /// XOSC.
     Xosc = ClkGpoutCtrlAuxsrc::XOSC_CLKSRC as _,
+    /// LPOSC.
+    #[cfg(feature = "_rp235x")]
+    Lposc = ClkGpoutCtrlAuxsrc::LPOSC_CLKSRC as _,
     /// SYS.
     Sys = ClkGpoutCtrlAuxsrc::CLK_SYS as _,
     /// USB.
